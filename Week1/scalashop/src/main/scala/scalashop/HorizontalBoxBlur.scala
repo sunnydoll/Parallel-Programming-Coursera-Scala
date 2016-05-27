@@ -43,8 +43,7 @@ object HorizontalBoxBlur {
    */
   def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
   // TODO implement this method using the `boxBlurKernel` method
-
-  ???
+    ???
   }
 
   /** Blurs the rows of the source image in parallel using `numTasks` tasks.

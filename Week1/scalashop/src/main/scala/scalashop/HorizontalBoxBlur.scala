@@ -43,7 +43,11 @@ object HorizontalBoxBlur {
    */
   def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
   // TODO implement this method using the `boxBlurKernel` method
-    ???
+    val yLow = clamp(from, 0, dst.height - 1)
+    val yHigh = clamp(end, 0, dst.height - 1)
+    for(x <- 0 to dst.width - 1; y <- yLow to yHigh - 1) {
+      dst.update(x, y, boxBlurKernel(src, x, y, radius))
+    }
   }
 
   /** Blurs the rows of the source image in parallel using `numTasks` tasks.
@@ -54,8 +58,31 @@ object HorizontalBoxBlur {
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
   // TODO implement using the `task` construct and the `blur` method
-
-  ???
+    if(numTasks <= 1) {
+      blur(src, dst, 0, src.height, radius)
+    }
+    else {
+      //Number of tasks should be smaller than the height of dst pic
+      val validNumTasks = clamp(numTasks, 0, dst.height - 1)
+      val tasksPerRound = dst.height / validNumTasks
+      if(dst.height % validNumTasks == 0) {
+        val range = 1 to dst.height - 1 by tasksPerRound
+        val strips = range.zip(range.tail)
+        for(strip <- strips) {
+          task(blur(src, dst, strip._1, strip._2, radius)).join()
+        }
+      }
+      else {
+        val mod = dst.height % validNumTasks
+        val extraStep = (0, mod)
+        val range = mod to dst.height - 1 by tasksPerRound
+        val strips = range.zip(range.tail)
+        val extraStrips = extraStep +: strips
+        for(strip <- extraStrips) {
+          task(blur(src, dst, strip._1, strip._2, radius)).join()
+        }
+      }
+    }
   }
 
 }

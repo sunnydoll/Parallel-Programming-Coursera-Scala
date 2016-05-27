@@ -68,7 +68,7 @@ object VerticalBoxBlur {
       val validNumTasks = clamp(numTasks, 0, dst.width - 1)
       val tasksPerRound = dst.width / validNumTasks
       if(dst.width % validNumTasks == 0) {
-        val range = 1 to dst.width by tasksPerRound
+        val range = 1 to dst.width - 1 by tasksPerRound
         val strips = range.zip(range.tail)
         for(strip <- strips) {
           task(blur(src, dst, strip._1, strip._2, radius)).join()
@@ -77,7 +77,7 @@ object VerticalBoxBlur {
       else {
         val mod = dst.width % validNumTasks
         val extraStep = (0, mod)
-        val range = mod to dst.width by tasksPerRound
+        val range = mod to dst.width - 1 by tasksPerRound
         val strips = range.zip(range.tail)
         val extraStrips = extraStep +: strips
         for(strip <- extraStrips) {

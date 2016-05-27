@@ -44,9 +44,9 @@ object VerticalBoxBlur {
    */
   def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
     // TODO implement this method using the `boxBlurKernel` method
-    val xLow = clamp(from, 0, dst.width - 1)
-    val xHigh = clamp(end, 0, dst.width - 1)
-    for(y <- 0 to dst.height - 1; x <- xLow to xHigh) {
+    val xLow = clamp(from, 0, dst.width)
+    val xHigh = clamp(end, 0, dst.width)
+    for(y <- 0 to dst.height - 1; x <- xLow to xHigh - 1) {
       dst.update(x, y, boxBlurKernel(src, x, y, radius))
     }
 
@@ -65,10 +65,10 @@ object VerticalBoxBlur {
     }
     else {
       //Number of tasks should be smaller than the width of dst pic
-      val validNumTasks = clamp(numTasks, 0, dst.width - 1)
+      val validNumTasks = clamp(numTasks, 1, dst.width)
       val tasksPerRound = dst.width / validNumTasks
       if(dst.width % validNumTasks == 0) {
-        val range = 1 to dst.width - 1 by tasksPerRound
+        val range = 0 to dst.width by tasksPerRound
         val strips = range.zip(range.tail)
         for(strip <- strips) {
           task(blur(src, dst, strip._1, strip._2, radius)).join()
@@ -76,8 +76,8 @@ object VerticalBoxBlur {
       }
       else {
         val mod = dst.width % validNumTasks
-        val extraStep = (0, mod)
-        val range = mod to dst.width - 1 by tasksPerRound
+        val extraStep = (0, mod + tasksPerRound)
+        val range = (mod + tasksPerRound) to dst.width by tasksPerRound
         val strips = range.zip(range.tail)
         val extraStrips = extraStep +: strips
         for(strip <- extraStrips) {
